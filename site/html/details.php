@@ -6,15 +6,20 @@ if(!isset($_SESSION["loggedin"]) || $_SESSION["loggedin"] === false){
     exit;
 }
 
+require_once("includes/util.inc.php");
 require_once "connection.php";
 
 // Récupère les informations liées au message séléctionné
 try {
     $sql = "SELECT Message.date, Utilisateur.login, Message.sujet, Message.corps FROM Message INNER JOIN Utilisateur
-            ON Message.expediteur = Utilisateur.id_login WHERE Message.id_message = " . $_GET["id"];
+            ON Message.expediteur = Utilisateur.id_login WHERE Message.id_message = ? AND Message.recepteur = ?";
 
-    $stmt = $pdo->query($sql);
+    $stmt = $pdo->prepare($sql);
+    $stmt->execute([test_input($_GET["id"]), $_SESSION["id"]]);
     $result = $stmt->fetch(PDO::FETCH_OBJ);
+    if (empty($result)) {
+        throw new PDOException("Pas de message à afficher");
+    }
 } catch (PDOException $e) {
     header("Location: 404.php");
 }
@@ -57,9 +62,9 @@ else{
             </div >';
 }
 
-echo "<a href='sendMail.php?id=" . $_GET["id"] . "' class='btn btn-primary btn-user btn-block btn-dark'>répondre</a>";
-echo "<a href='deleteMail.php?id=" . $_GET["id"] . "' class='btn btn-primary btn-user btn-block btn-google'>supprimer</a>";
-echo '<a href="index.php" class="btn btn-primary btn-user btn-block">retour</a>';
+echo "<a href='sendMail.php?id=" . test_input($_GET["id"]) . "' class='btn btn-primary btn-user btn-block btn-dark'>répondre</a>";
+echo "<a href='deleteMail.php?id=" . test_input($_GET["id"]) . "' class='btn btn-primary btn-user btn-block btn-google'>supprimer</a>";
+echo '<a href="index.php" class="btn btn-primary btn-user btn-block">Retour</a>';
 echo '</div >';
 
 include_once('includes/footer.inc.php');

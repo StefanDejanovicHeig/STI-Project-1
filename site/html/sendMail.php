@@ -6,6 +6,7 @@ if(!isset($_SESSION["loggedin"]) || $_SESSION["loggedin"] === false){
     exit;
 }
 
+require_once("includes/util.inc.php");
 require_once "connection.php";
 
 $destination = $subject = $message = "";
@@ -14,9 +15,13 @@ $destination = $subject = $message = "";
 if(isset($_GET['id'])){
     try{
         $sql = "SELECT Utilisateur.login, Message.date, Message.sujet, Message.corps FROM Message INNER JOIN Utilisateur
-            ON Message.expediteur = Utilisateur.id_login WHERE Message.id_message = " . $_GET["id"];
-        $stmt = $pdo->query($sql);
+            ON Message.expediteur = Utilisateur.id_login WHERE Message.id_message = ? AND Message.recepteur = ?";
+        $stmt = $pdo->prepare($sql);
+        $stmt->execute([test_input($_GET["id"]), $_SESSION["id"]]);
         $user = $stmt->fetch(PDO::FETCH_OBJ);
+        if (empty($user)) {
+            throw new PDOException("Pas de message à afficher");
+        }
         $destination = $user->login;
         $subject = "Re: " . $user->sujet;
         $message = "\r\n\r\n\r\n---------------------------->Réponse au mail ci-dessous\r\n\r\nEnvoyé le: " . $user->date
@@ -32,27 +37,28 @@ $destination_err = $subject_err = $message_err = "";
 
 // Traite le formulaire
 if($_SERVER["REQUEST_METHOD"] == "POST"){
-    if(empty(trim($_POST["destination"]))){
+    if(empty(test_input($_POST["destination"]))){
         $destination_err = "Entrez un destinataire";
     } else{
-        $destination = $_POST["destination"];
+        $destination = test_input($_POST["destination"]);
     }
-    if(empty(trim($_POST["subject"]))){
+    if(empty(test_input($_POST["subject"]))){
         $subject_err = "Entrez un subject";
     } else{
-        $subject = ($_POST["subject"]);
+        $subject = test_input($_POST["subject"]);
     }
-    if(empty(trim($_POST["message"]))){
+    if(empty(test_input($_POST["message"]))){
         $message_err = "Entrez un message";
     } else{
-        $message = $_POST["message"];
+        $message = test_input($_POST["message"]);
     }
 
     if(empty($destination_err) && empty($subject_err) && empty($message_err)) {
         // Récupère les users de la bdd
         try{
             $sql = "SELECT id_login, login, supprimer FROM Utilisateur";
-            $stmt = $pdo->query($sql);
+            $stmt = $pdo->prepare($sql);
+            $stmt->execute();
             $tabUser = $stmt->fetchAll(PDO::FETCH_ASSOC);
         } catch (PDOException $e) {
             header("Location: 404.php");

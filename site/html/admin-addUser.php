@@ -11,12 +11,14 @@ if (isset($_SESSION["isNotAdmin"]) && $_SESSION["isNotAdmin"] === 1){
     exit;
 }
 require_once("connection.php");
+require_once("includes/util.inc.php");
 
 $exist = 0;
 //séléctionne tous les utilisateurs pour vérifier lors de l'ajout que le login n'est pas déjà pris
 try {
     $strSQLRequest = "SELECT id_login, login FROM Utilisateur";
-    $stmt = $pdo->query($strSQLRequest);
+    $stmt = $pdo->prepare($strSQLRequest);
+    $stmt->execute();
     $userExist = $stmt->fetchAll(PDO::FETCH_ASSOC);
     $stmt->closeCursor();
 
@@ -31,7 +33,7 @@ if(isset($_POST['edit'])){
         $_GET['edit_id_login'] = $_POST['id_login'];
         //vérifie si l'utilisateur existe déjà
         foreach ($userExist as $user){
-            if (trim($_POST['login']) === $user['login'] && $_POST['id_login'] != $user['id_login']){
+            if (test_input($_POST['login']) === $user['login'] && $_POST['id_login'] != $user['id_login']){
                 $exist = 1;
             }
         }
@@ -39,7 +41,7 @@ if(isset($_POST['edit'])){
             try {
                 //modification avec mdp ou sans
                 if (isset($_POST['password']) && $_POST['password'] != "") {
-                    $hashPassword = password_hash($_POST['password'], PASSWORD_DEFAULT);
+                    $hashPassword = password_hash(test_input($_POST['password']), PASSWORD_DEFAULT);
                     $strSQLRequest = "UPDATE Utilisateur SET password = ?, valide = ?, id_role = ? WHERE id_login = ?";
                     $stmt = $pdo->prepare($strSQLRequest);
                     $stmt->execute([$hashPassword, $_POST['valide'], $_POST['Role'], $_POST['id_login']]);
@@ -52,18 +54,19 @@ if(isset($_POST['edit'])){
                 header("Location: 404.php");
             }
 
-            //gère le fait qu'un admin peut se changer ses droits ainsi que deésactivé son compte et donc enlève l'accès
-            // à la page d'administration et/ou renvoie à la page de login et deconnecte la session
-            if($_POST['Role'] === '2') {
-                $_SESSION["isNotAdmin"] = 1;
+            if ($_POST['id_login'] == $_SESSION["id"]) {
+                //gère le fait qu'un admin peut se changer ses droits ainsi que désactivé son compte et donc enlève l'accès
+                // à la page d'administration et/ou renvoie à la page de login et deconnecte la session
+                if($_POST['Role'] === '2') {
+                    $_SESSION["isNotAdmin"] = 1;
+                }
+
+                if ($_POST['valide'] == 0) {
+                    header("Location: logout.php");
+                }
             }
 
-            if ($_POST['valide'] == 0) {
-                echo "salut";
-                header("Location: logout.php");
-            } else {
-                header("Location: admin.php");
-            }
+            header("Location: admin.php");
 
         } else {
             $error = "Ce login est déjà pris. Veuillez en choisir un autre";
@@ -78,11 +81,12 @@ if(isset($_POST['edit'])){
 //récupère les donnée de l'utilisateur qu'on veut modifier en cliquant sur modifier sur la page admin
 if (isset($_GET['edit_id_login'])) {
     try{
-        $idLoginToEdit = $_GET['edit_id_login'];
+        $idLoginToEdit = test_input($_GET['edit_id_login']);
         $strSQLRequest = "SELECT id_login, login, valide, nom_role, Utilisateur.id_role FROM Utilisateur
             INNER JOIN Role ON Utilisateur.id_role = Role.id_role
-            WHERE id_login LIKE '".$_GET['edit_id_login']."'";
-        $stmt = $pdo->query($strSQLRequest);
+            WHERE id_login LIKE ?";
+        $stmt = $pdo->prepare($strSQLRequest);
+        $stmt->execute([$idLoginToEdit]);
         $userToEdit = $stmt->fetch(PDO::FETCH_ASSOC);
         $stmt->closeCursor();
     } catch (PDOException $e) {
@@ -94,17 +98,17 @@ if (isset($_GET['edit_id_login'])) {
 if(isset($_POST['add'])){
     //vérifie si l'utilisateur existe déjà
     foreach ($userExist as $user){
-        if (trim($_POST['login']) === $user['login']){
+        if (test_input($_POST['login']) === $user['login']){
             $exist = 1;
         }
     }
     if ($exist === 0){
-        $login = trim($_POST['login']);
+        $login = test_input($_POST['login']);
         //vérifie qu'il y ai un login est un mdp renseigné dans les champs prévus
         if (isset($login) && $login != "") {
             if (isset($_POST['password']) && $_POST['password'] != "") {
                 try {
-                    $hashPassword = password_hash($_POST['password'], PASSWORD_DEFAULT);
+                    $hashPassword = password_hash(test_input($_POST['password']), PASSWORD_DEFAULT);
                     $strSQLRequest ="INSERT INTO Utilisateur (login, password, valide, supprimer, id_role) VALUES (?,?,?,?,?)";
                     $stmt= $pdo->prepare($strSQLRequest);
                     $stmt->execute([$login, $hashPassword, $_POST['valide'], 0, $_POST['Role']]);

@@ -5,12 +5,12 @@ if(!isset($_SESSION["loggedin"]) || $_SESSION["loggedin"] === false){
     header("location: login.php");
     exit;
 }
-
+require_once("includes/util.inc.php");
 require_once ("connection.php");
 //modifie le mot de passe si le champs est rempli seulement
 if (isset($_POST['password']) && $_POST['password'] != "") {
     try {
-        $hashPassword = password_hash($_POST['password'], PASSWORD_DEFAULT);
+        $hashPassword = password_hash(test_input($_POST['password']), PASSWORD_DEFAULT);
         $strSQLRequest = "UPDATE Utilisateur SET password = ?WHERE id_login = ?";
         $stmt = $pdo->prepare($strSQLRequest);
         $stmt->execute([$hashPassword, $_SESSION["id"]]);

@@ -6,6 +6,7 @@
         exit;
     }
 
+    require_once("includes/util.inc.php");
     require_once "connection.php";
 
     $login = $password = "";
@@ -13,15 +14,15 @@
 
     // Traite le formulaire et vérifie les champs
     if($_SERVER["REQUEST_METHOD"] == "POST"){
-        if(empty(trim($_POST["login"]))){
+        if(empty(test_input($_POST["login"]))){
             $login_err = "Entrez le login";
         } else{
-            $login = trim($_POST["login"]);
+            $login = test_input($_POST["login"]);
         }
-        if(empty(trim($_POST["password"]))){
+        if(empty(test_input($_POST["password"]))){
             $password_err = "Entrez votre mot de passe";
         } else{
-            $password = trim($_POST["password"]);
+            $password = test_input($_POST["password"]);
         }
 
         // On continue le traitement du formulaire que si les champs sont remplis
@@ -31,7 +32,8 @@
                 $sql = "SELECT id_login, login, password, valide, nom_role FROM Utilisateur 
                     INNER JOIN Role ON Utilisateur.id_role = Role.id_role WHERE supprimer = '0'";
 
-                $stmt = $pdo->query($sql);
+                $stmt = $pdo->prepare($sql);
+                $stmt->execute();
                 $tabUsers = $stmt->fetchAll(PDO::FETCH_ASSOC);
             } catch (PDOException $e) {
                 header("Location: 404.php");

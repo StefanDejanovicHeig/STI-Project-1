@@ -10,6 +10,7 @@
         exit;
     }
 
+    require_once("includes/util.inc.php");
     include_once('includes/header.inc.php');
     require_once("connection.php");
 
@@ -18,7 +19,8 @@
         $strSQLRequest = "SELECT id_login, login, valide, nom_role FROM Utilisateur
                 INNER JOIN Role ON Utilisateur.id_role = Role.id_role WHERE supprimer = 0
                 ORDER BY login";
-        $stmt = $pdo->query($strSQLRequest);
+        $stmt = $pdo->prepare($strSQLRequest);
+        $stmt->execute();
         $tabUsers = $stmt->fetchAll(PDO::FETCH_ASSOC);
         $stmt->closeCursor();
     } catch (PDOException $e) {

@@ -12,10 +12,10 @@
     // Séléctionne tous les messages liés au user connecté
     try{
         $sql = "SELECT Message.id_message, Message.date, Utilisateur.login, Message.sujet FROM Message INNER JOIN Utilisateur
-            ON Message.expediteur = Utilisateur.id_login WHERE Message.recepteur = " . $_SESSION["id"] .
-            " ORDER BY Message.id_message DESC";
+            ON Message.expediteur = Utilisateur.id_login WHERE Message.recepteur = ? ORDER BY Message.id_message DESC";
 
-        $stmt = $pdo->query($sql);
+        $stmt = $pdo->prepare($sql);
+        $stmt->execute([$_SESSION["id"]]);
         $tabMessages = $stmt->fetchAll(PDO::FETCH_ASSOC);
     } catch (PDOException $e) {
         header("Location: 404.php");
