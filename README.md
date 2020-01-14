@@ -25,22 +25,12 @@ sudo chmod o+rw databases/database.sqlite
 
 Tout ce qui concerne le site doit se trouver dans le dossier `html` et tout ce qui concerne la base de données dans le dossier `databases`. 
 
-Pour lancer le container Docker avec le serveur nginx et PHP5, il faut ouvrir un terminal et se positionner dans le répertoire contenant le dossier `site` via la commande `cd ` puis faire comme suit :
+Pour lancer le container Docker avec le serveur nginx et PHP5, il faut aller sur le dossier principal via le terminal et lancer le script bash start.sh
 
-1. lancer la commande :
+```bash
+./start.sh
+```
 
-   ```bash
-   docker run -ti -v "$PWD/site":/usr/share/nginx/ -d -p 8080:80 --name sti_project --hostname sti arubinst/sti:project2018
-   ```
-
-   Le port 8080 peut être changé par un autre port si cela vous convient mieux.
-
-2. Ensuite, pour lancer les services nginx et PHP, lancer les commandes suivantes :
-
-   ```bash
-   docker exec -u root sti_project service nginx start
-   docker exec -u root sti_project service php5-fpm start
-   ```
 
 3. Puis, accéder à la page d’administration de la base de données qui se trouve à l’adresse 
 
