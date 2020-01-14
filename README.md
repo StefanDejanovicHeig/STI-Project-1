@@ -1,11 +1,12 @@
-# STI-Project1
+# STI-Project2
 
-> Auteurs : Sutcu Volkan & Benoit Julien  
-> Date : 10.10.2019
+> Auteurs : Dejanovic Stefan & Benoit Julien  
+> Date : 15.01.2020
 
 ## Introduction
 
-Le but de ce projet était de créer un site web permettant d’échanger des messages à travers une base de données entre les utilisateurs et de gérer ces derniers. Nous étions mandaté par une entreprise qui n’avait malheureusement pas le budget pour s’occuper de l’aspect sécuritaire de l’application.
+Le but de ce projet était de faire un test de sécurité sur site web qui a été réalisé à l'aide d'une vieille version de PHP ainsi que d'une base de donnée SQLite.
+
 
 ## Comment lancer l'application
 
