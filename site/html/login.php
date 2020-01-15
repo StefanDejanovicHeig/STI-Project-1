@@ -1,5 +1,4 @@
 <?php
-    ini_set('display_errors', 1);
     session_start();
     # Il faut normalement utiliser random_bytes mais utilisable qu'à partir de php7
     $token = bin2hex(openssl_random_pseudo_bytes(32));
@@ -27,9 +26,7 @@
         } else{
             $password = test_input($_POST["password"]);
         }
-        if($token != $_POST["token"]){
-            header("Location: login.php");
-        }
+
 
         // On continue le traitement du formulaire que si les champs sont remplis
         if(empty($login_err) && empty($password_err)) {
@@ -148,7 +145,7 @@
                             </div>
                             <div class="form-group">
                                 <input type="submit" class="btn btn-primary" value="Login">
-                                <input type="hidden" name="token" id="token" value="<?php echo $_SESSION['token']; ?>" />
+                                <input type="hidden" name="token" id="token" value="<?php echo $token; ?>" />
                             </div>
                         </div>
                     </form>
