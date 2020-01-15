@@ -1,5 +1,8 @@
 <?php
+    ini_set('display_errors', 1);
     session_start();
+    # Il faut normalement utiliser random_bytes mais utilisable qu'à partir de php7
+    $token = bin2hex(openssl_random_pseudo_bytes(32));
 
     if(isset($_SESSION["loggedin"]) && $_SESSION["loggedin"] === true){
         header("location: index.php");
@@ -23,6 +26,9 @@
             $password_err = "Entrez votre mot de passe";
         } else{
             $password = test_input($_POST["password"]);
+        }
+        if($token != $_POST["token"]){
+            header("Location: login.php");
         }
 
         // On continue le traitement du formulaire que si les champs sont remplis
@@ -69,17 +75,18 @@
                         $_SESSION["id"] = $id_login;
                         $_SESSION["login"] = $login;
                         $_SESSION["role"] = $role;
+                        $_SESSION["token"] = $token;
 
                         header("location: index.php");
                     }
                     else{
-                        $password_err =  "Compte non-valide !";
+                        $password_err =  "Identifiant ou mot de passe incorrecte";
                     }
                 } else{
-                    $password_err = "Le mot de passe entré n'est pas valide";
+                    $password_err = "Identifiant ou mot de passe incorrecte";
                 }
             } else {
-                $login_err = "Pas de compte trouvé avec ce user ";
+                $password_err = "Identifiant ou mot de passe incorrecte";
             }
         }
     }
@@ -141,6 +148,7 @@
                             </div>
                             <div class="form-group">
                                 <input type="submit" class="btn btn-primary" value="Login">
+                                <input type="hidden" name="token" id="token" value="<?php echo $_SESSION['token']; ?>" />
                             </div>
                         </div>
                     </form>

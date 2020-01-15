@@ -37,6 +37,14 @@ $destination_err = $subject_err = $message_err = "";
 
 // Traite le formulaire
 if($_SERVER["REQUEST_METHOD"] == "POST"){
+    
+    // Vérification token anti-csrf
+    if($_SESSION["token"] != $_POST["token"]){
+        $session = false;
+    } else {
+        $session = true;
+    }
+
     if(empty(test_input($_POST["destination"]))){
         $destination_err = "Entrez un destinataire";
     } else{
@@ -53,7 +61,8 @@ if($_SERVER["REQUEST_METHOD"] == "POST"){
         $message = test_input($_POST["message"]);
     }
 
-    if(empty($destination_err) && empty($subject_err) && empty($message_err)) {
+    if($session == true && empty($destination_err) && empty($subject_err) && empty($message_err)) {
+        
         // Récupère les users de la bdd
         try{
             $sql = "SELECT id_login, login, supprimer FROM Utilisateur";
@@ -87,6 +96,8 @@ if($_SERVER["REQUEST_METHOD"] == "POST"){
             }
 
             header("location: index.php");
+            
+            
 
         } else {
             $destination_err = "Pas de compte trouvé avec ce destinataire ";
@@ -125,6 +136,7 @@ include_once('includes/header.inc.php');
                                     <span class="help-block"><?php echo $message_err; ?></span>
                                 </div>
                                 <div class="form-group">
+                                    <input type="hidden" name="token" id="token" value="<?php echo $_SESSION['token']; ?>" />
                                     <input type="submit" class="btn btn-primary btn-user btn-block" value="Envoyer">
                                 </div>
                             </div>

@@ -28,8 +28,16 @@ try {
 
 //partie permettant la modification d'utilisateurs
 if(isset($_POST['edit'])){
+    
+    // Vérification token anti-csrf
+    if($_SESSION['token'] == $_POST['token']){
+        $session = true;
+    } else{
+        $session = false;
+    }
+    
     //vérifie que l'utilisateur a un id
-    if (isset($_POST['id_login'])){
+    if ($session == true && isset($_POST['id_login'])){
         $_GET['edit_id_login'] = $_POST['id_login'];
         //vérifie si l'utilisateur existe déjà
         foreach ($userExist as $user){
@@ -96,13 +104,21 @@ if (isset($_GET['edit_id_login'])) {
 
 //partie permettant l'ajout d'utilisateurs
 if(isset($_POST['add'])){
+    
+    // Vérification token anti-csrf
+    if($_SESSION['token'] == $_POST['token']){
+        $session = true;
+    } else{
+        $session = false;
+    }
+
     //vérifie si l'utilisateur existe déjà
     foreach ($userExist as $user){
         if (test_input($_POST['login']) === $user['login']){
             $exist = 1;
         }
     }
-    if ($exist === 0){
+    if ($exist === 0 && $session == true){
         $login = test_input($_POST['login']);
         //vérifie qu'il y ai un login est un mdp renseigné dans les champs prévus
         if (isset($login) && $login != "") {
@@ -112,7 +128,7 @@ if(isset($_POST['add'])){
                     $strSQLRequest ="INSERT INTO Utilisateur (login, password, valide, supprimer, id_role) VALUES (?,?,?,?,?)";
                     $stmt= $pdo->prepare($strSQLRequest);
                     $stmt->execute([$login, $hashPassword, $_POST['valide'], 0, $_POST['Role']]);
-                    header("Location: admin.php");
+                    //header("Location: admin.php");
                 } catch (PDOException $e) {
                     header("Location: 404.php");
                 }
@@ -204,7 +220,7 @@ include_once('includes/header.inc.php');
                                     <input type='password' class='form-control form-control-user' placeholder='<?php echo (isset($userToEdit['login'])) ? "Changer le mot de passe ?" :"Mot de passe"; ?>' name='password'>
                                 </div>
                             </div>
-
+                            <input type="hidden" name="token" id="token" value="<?php echo $_SESSION['token']; ?>" />                    
                             <input type='submit' name='<?php echo (isset($userToEdit['login'])) ? "edit" : "add"; ?>' class='btn btn-primary btn-user btn-block' value='<?php echo (isset($userToEdit['login'])) ? "Modifier" : "Ajouter"; ?>'>
                             <?php echo (isset($error)) ? "<div class='col-sm-12'>
                                     <label class='text-lg'>".$error."</label>

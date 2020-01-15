@@ -8,7 +8,7 @@ if(!isset($_SESSION["loggedin"]) || $_SESSION["loggedin"] === false){
 require_once("includes/util.inc.php");
 require_once ("connection.php");
 //modifie le mot de passe si le champs est rempli seulement
-if (isset($_POST['password']) && $_POST['password'] != "") {
+if (isset($_POST['password']) && $_POST['password'] != "" && $_SESSION['token'] == $_POST['token']) {
     try {
         $hashPassword = password_hash(test_input($_POST['password']), PASSWORD_DEFAULT);
         $strSQLRequest = "UPDATE Utilisateur SET password = ?WHERE id_login = ?";
@@ -59,6 +59,7 @@ include_once('includes/header.inc.php');
                         </div>
                     </div>
                 </div>
+                <input type="hidden" name="token" id="token" value="<?php echo $_SESSION['token']; ?>" />
                 <input type='submit' id="profile" name='edit' class='btn btn-primary btn-user btn-block' value='Modifier' disabled>
                 <?php
                     if (isset($_POST["edit"]) && isset($hashPassword)) {
